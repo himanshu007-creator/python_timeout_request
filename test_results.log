@@ -1,0 +1,1817 @@
+2024-07-27 16:32:38,695 - ERROR - Some tests failed.
+2024-07-27 16:32:38,695 - ERROR - ============================= test session starts ==============================
+platform darwin -- Python 3.10.5, pytest-7.3.1, pluggy-1.5.0 -- /Users/himanshu./Desktop/python_timeout_request/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/himanshu./Desktop/python_timeout_request
+plugins: asyncio-0.21.0
+asyncio: mode=strict
+collecting ... collected 4 items
+
+tests/test_decorator.py::test_sync_function_timeout FAILED               [ 25%]
+tests/test_decorator.py::test_sync_function_success PASSED               [ 50%]
+tests/test_decorator.py::test_async_function_timeout FAILED              [ 75%]
+tests/test_decorator.py::test_async_function_success FAILED              [100%]
+
+=================================== FAILURES ===================================
+__________________________ test_sync_function_timeout __________________________
+
+    def test_sync_function_timeout():
+        @timeout_decorator(1)
+        def slow_function():
+            import time
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_decorator.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+src/timeout_decorator/decorator.py:73: in sync_wrapper
+    future.result(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+_________________________ test_async_function_timeout __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_timeout():
+        @timeout_decorator(1)
+        async def slow_async_function():
+            await asyncio.sleep(2)
+            return "Done"
+    
+>       assert await slow_async_function() is None
+
+tests/test_decorator.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.run(async_wrapper(*args, **kwargs))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+main = <coroutine object timeout_decorator.<locals>.decorator.<locals>.async_wrapper at 0x101beda10>
+
+    def run(main, *, debug=None):
+        """Execute the coroutine and return the result.
+    
+        This function runs the passed coroutine, taking care of
+        managing the asyncio event loop and finalizing asynchronous
+        generators.
+    
+        This function cannot be called when another asyncio event loop is
+        running in the same thread.
+    
+        If debug is True, the event loop will be run in debug mode.
+    
+        This function always creates a new event loop and closes it at the end.
+        It should be used as a main entry point for asyncio programs, and should
+        ideally only be called once.
+    
+        Example:
+    
+            async def main():
+                await asyncio.sleep(1)
+                print('hello')
+    
+            asyncio.run(main())
+        """
+        if events._get_running_loop() is not None:
+>           raise RuntimeError(
+                "asyncio.run() cannot be called from a running event loop")
+E           RuntimeError: asyncio.run() cannot be called from a running event loop
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/runners.py:33: RuntimeError
+_________________________ test_async_function_success __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_success():
+        @timeout_decorator(2)
+        async def fast_async_function():
+            return "Done"
+    
+>       assert await fast_async_function() == "Done"
+
+tests/test_decorator.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.run(async_wrapper(*args, **kwargs))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+main = <coroutine object timeout_decorator.<locals>.decorator.<locals>.async_wrapper at 0x101bee260>
+
+    def run(main, *, debug=None):
+        """Execute the coroutine and return the result.
+    
+        This function runs the passed coroutine, taking care of
+        managing the asyncio event loop and finalizing asynchronous
+        generators.
+    
+        This function cannot be called when another asyncio event loop is
+        running in the same thread.
+    
+        If debug is True, the event loop will be run in debug mode.
+    
+        This function always creates a new event loop and closes it at the end.
+        It should be used as a main entry point for asyncio programs, and should
+        ideally only be called once.
+    
+        Example:
+    
+            async def main():
+                await asyncio.sleep(1)
+                print('hello')
+    
+            asyncio.run(main())
+        """
+        if events._get_running_loop() is not None:
+>           raise RuntimeError(
+                "asyncio.run() cannot be called from a running event loop")
+E           RuntimeError: asyncio.run() cannot be called from a running event loop
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/runners.py:33: RuntimeError
+=========================== short test summary info ============================
+FAILED tests/test_decorator.py::test_sync_function_timeout - concurrent.futur...
+FAILED tests/test_decorator.py::test_async_function_timeout - RuntimeError: a...
+FAILED tests/test_decorator.py::test_async_function_success - RuntimeError: a...
+========================= 3 failed, 1 passed in 2.06s ==========================
+
+2024-07-27 16:32:38,695 - ERROR - sys:1: RuntimeWarning: coroutine 'timeout_decorator.<locals>.decorator.<locals>.async_wrapper' was never awaited
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+
+2024-07-27 16:34:34,862 - ERROR - ✗ Sync decorator failed
+2024-07-27 16:34:34,863 - ERROR - ✗ Async decorator failed
+2024-07-27 16:34:34,863 - ERROR - ✗ Some checks failed
+2024-07-27 16:34:34,863 - INFO - Full test output:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.5, pytest-7.3.1, pluggy-1.5.0 -- /Users/himanshu./Desktop/python_timeout_request/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/himanshu./Desktop/python_timeout_request
+plugins: asyncio-0.21.0
+asyncio: mode=strict
+collecting ... collected 4 items
+
+tests/test_decorator.py::test_sync_function_timeout FAILED               [ 25%]
+tests/test_decorator.py::test_sync_function_success PASSED               [ 50%]
+tests/test_decorator.py::test_async_function_timeout FAILED              [ 75%]
+tests/test_decorator.py::test_async_function_success FAILED              [100%]
+
+=================================== FAILURES ===================================
+__________________________ test_sync_function_timeout __________________________
+
+    def test_sync_function_timeout():
+        @timeout_decorator(1)
+        def slow_function():
+            import time
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_decorator.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+src/timeout_decorator/decorator.py:73: in sync_wrapper
+    future.result(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+_________________________ test_async_function_timeout __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_timeout():
+        @timeout_decorator(1)
+        async def slow_async_function():
+            await asyncio.sleep(2)
+            return "Done"
+    
+>       assert await slow_async_function() is None
+
+tests/test_decorator.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.run(async_wrapper(*args, **kwargs))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+main = <coroutine object timeout_decorator.<locals>.decorator.<locals>.async_wrapper at 0x101dddd20>
+
+    def run(main, *, debug=None):
+        """Execute the coroutine and return the result.
+    
+        This function runs the passed coroutine, taking care of
+        managing the asyncio event loop and finalizing asynchronous
+        generators.
+    
+        This function cannot be called when another asyncio event loop is
+        running in the same thread.
+    
+        If debug is True, the event loop will be run in debug mode.
+    
+        This function always creates a new event loop and closes it at the end.
+        It should be used as a main entry point for asyncio programs, and should
+        ideally only be called once.
+    
+        Example:
+    
+            async def main():
+                await asyncio.sleep(1)
+                print('hello')
+    
+            asyncio.run(main())
+        """
+        if events._get_running_loop() is not None:
+>           raise RuntimeError(
+                "asyncio.run() cannot be called from a running event loop")
+E           RuntimeError: asyncio.run() cannot be called from a running event loop
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/runners.py:33: RuntimeError
+_________________________ test_async_function_success __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_success():
+        @timeout_decorator(2)
+        async def fast_async_function():
+            return "Done"
+    
+>       assert await fast_async_function() == "Done"
+
+tests/test_decorator.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.run(async_wrapper(*args, **kwargs))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+main = <coroutine object timeout_decorator.<locals>.decorator.<locals>.async_wrapper at 0x101dde570>
+
+    def run(main, *, debug=None):
+        """Execute the coroutine and return the result.
+    
+        This function runs the passed coroutine, taking care of
+        managing the asyncio event loop and finalizing asynchronous
+        generators.
+    
+        This function cannot be called when another asyncio event loop is
+        running in the same thread.
+    
+        If debug is True, the event loop will be run in debug mode.
+    
+        This function always creates a new event loop and closes it at the end.
+        It should be used as a main entry point for asyncio programs, and should
+        ideally only be called once.
+    
+        Example:
+    
+            async def main():
+                await asyncio.sleep(1)
+                print('hello')
+    
+            asyncio.run(main())
+        """
+        if events._get_running_loop() is not None:
+>           raise RuntimeError(
+                "asyncio.run() cannot be called from a running event loop")
+E           RuntimeError: asyncio.run() cannot be called from a running event loop
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/runners.py:33: RuntimeError
+=========================== short test summary info ============================
+FAILED tests/test_decorator.py::test_sync_function_timeout - concurrent.futur...
+FAILED tests/test_decorator.py::test_async_function_timeout - RuntimeError: a...
+FAILED tests/test_decorator.py::test_async_function_success - RuntimeError: a...
+========================= 3 failed, 1 passed in 2.04s ==========================
+
+2024-07-27 16:34:34,863 - ERROR - Error output:
+sys:1: RuntimeWarning: coroutine 'timeout_decorator.<locals>.decorator.<locals>.async_wrapper' was never awaited
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+
+2024-07-27 16:36:18,033 - ERROR - ✗ Sync decorator failed
+2024-07-27 16:36:18,033 - ERROR - ✗ Async decorator failed
+2024-07-27 16:36:18,033 - ERROR - ✗ Some checks failed
+2024-07-27 16:36:18,033 - INFO - Full test output:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.5, pytest-7.3.1, pluggy-1.5.0 -- /Users/himanshu./Desktop/python_timeout_request/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/himanshu./Desktop/python_timeout_request
+plugins: asyncio-0.21.0
+asyncio: mode=strict
+collecting ... collected 6 items
+
+tests/test_timeout_decorator.py::test_sync_function_timeout FAILED       [ 16%]
+tests/test_timeout_decorator.py::test_sync_function_success PASSED       [ 33%]
+tests/test_timeout_decorator.py::test_async_function_timeout FAILED      [ 50%]
+tests/test_timeout_decorator.py::test_async_function_success FAILED      [ 66%]
+tests/test_timeout_decorator.py::test_sync_function_with_callback FAILED [ 83%]
+tests/test_timeout_decorator.py::test_sync_function_with_custom_error FAILED [100%]
+
+=================================== FAILURES ===================================
+__________________________ test_sync_function_timeout __________________________
+
+    def test_sync_function_timeout():
+        @timeout_decorator(1)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_timeout_decorator.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+src/timeout_decorator/decorator.py:73: in sync_wrapper
+    future.result(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+_________________________ test_async_function_timeout __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_timeout():
+        @timeout_decorator(1)
+        async def slow_async_function():
+            await asyncio.sleep(2)
+            return "Done"
+    
+>       assert await slow_async_function() is None
+
+tests/test_timeout_decorator.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.run(async_wrapper(*args, **kwargs))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+main = <coroutine object timeout_decorator.<locals>.decorator.<locals>.async_wrapper at 0x10585a0a0>
+
+    def run(main, *, debug=None):
+        """Execute the coroutine and return the result.
+    
+        This function runs the passed coroutine, taking care of
+        managing the asyncio event loop and finalizing asynchronous
+        generators.
+    
+        This function cannot be called when another asyncio event loop is
+        running in the same thread.
+    
+        If debug is True, the event loop will be run in debug mode.
+    
+        This function always creates a new event loop and closes it at the end.
+        It should be used as a main entry point for asyncio programs, and should
+        ideally only be called once.
+    
+        Example:
+    
+            async def main():
+                await asyncio.sleep(1)
+                print('hello')
+    
+            asyncio.run(main())
+        """
+        if events._get_running_loop() is not None:
+>           raise RuntimeError(
+                "asyncio.run() cannot be called from a running event loop")
+E           RuntimeError: asyncio.run() cannot be called from a running event loop
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/runners.py:33: RuntimeError
+_________________________ test_async_function_success __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_success():
+        @timeout_decorator(2)
+        async def fast_async_function():
+            await asyncio.sleep(1)
+            return "Done"
+    
+>       assert await fast_async_function() == "Done"
+
+tests/test_timeout_decorator.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.run(async_wrapper(*args, **kwargs))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+main = <coroutine object timeout_decorator.<locals>.decorator.<locals>.async_wrapper at 0x10585a8f0>
+
+    def run(main, *, debug=None):
+        """Execute the coroutine and return the result.
+    
+        This function runs the passed coroutine, taking care of
+        managing the asyncio event loop and finalizing asynchronous
+        generators.
+    
+        This function cannot be called when another asyncio event loop is
+        running in the same thread.
+    
+        If debug is True, the event loop will be run in debug mode.
+    
+        This function always creates a new event loop and closes it at the end.
+        It should be used as a main entry point for asyncio programs, and should
+        ideally only be called once.
+    
+        Example:
+    
+            async def main():
+                await asyncio.sleep(1)
+                print('hello')
+    
+            asyncio.run(main())
+        """
+        if events._get_running_loop() is not None:
+>           raise RuntimeError(
+                "asyncio.run() cannot be called from a running event loop")
+E           RuntimeError: asyncio.run() cannot be called from a running event loop
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/runners.py:33: RuntimeError
+_______________________ test_sync_function_with_callback _______________________
+
+    def test_sync_function_with_callback():
+        callback_called = False
+    
+        def callback(func_name, *args, **kwargs):
+            nonlocal callback_called
+            callback_called = True
+    
+        @timeout_decorator(1, callback=callback)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_timeout_decorator.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+src/timeout_decorator/decorator.py:73: in sync_wrapper
+    future.result(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+_____________________ test_sync_function_with_custom_error _____________________
+
+    def test_sync_function_with_custom_error():
+        class CustomTimeoutError(Exception):
+            pass
+    
+        @timeout_decorator(1, custom_error=CustomTimeoutError)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+        with pytest.raises(CustomTimeoutError):
+>           slow_function()
+
+tests/test_timeout_decorator.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+src/timeout_decorator/decorator.py:73: in sync_wrapper
+    future.result(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+=========================== short test summary info ============================
+FAILED tests/test_timeout_decorator.py::test_sync_function_timeout - concurre...
+FAILED tests/test_timeout_decorator.py::test_async_function_timeout - Runtime...
+FAILED tests/test_timeout_decorator.py::test_async_function_success - Runtime...
+FAILED tests/test_timeout_decorator.py::test_sync_function_with_callback - co...
+FAILED tests/test_timeout_decorator.py::test_sync_function_with_custom_error
+========================= 5 failed, 1 passed in 7.08s ==========================
+
+2024-07-27 16:36:18,033 - ERROR - Error output:
+
+2024-07-27 16:36:56,010 - ERROR - ✗ Sync decorator failed
+2024-07-27 16:36:56,010 - ERROR - ✗ Async decorator failed
+2024-07-27 16:36:56,010 - ERROR - ✗ Some checks failed
+2024-07-27 16:36:56,010 - INFO - Full test output:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.5, pytest-7.3.1, pluggy-1.5.0 -- /Users/himanshu./Desktop/python_timeout_request/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/himanshu./Desktop/python_timeout_request
+plugins: asyncio-0.21.0
+asyncio: mode=strict
+collecting ... collected 6 items
+
+tests/test_timeout_decorator.py::test_sync_function_timeout FAILED       [ 16%]
+tests/test_timeout_decorator.py::test_sync_function_success PASSED       [ 33%]
+tests/test_timeout_decorator.py::test_async_function_timeout FAILED      [ 50%]
+tests/test_timeout_decorator.py::test_async_function_success FAILED      [ 66%]
+tests/test_timeout_decorator.py::test_sync_function_with_callback FAILED [ 83%]
+tests/test_timeout_decorator.py::test_sync_function_with_custom_error FAILED [100%]
+
+=================================== FAILURES ===================================
+__________________________ test_sync_function_timeout __________________________
+
+    def test_sync_function_timeout():
+        @timeout_decorator(1)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_timeout_decorator.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+src/timeout_decorator/decorator.py:73: in sync_wrapper
+    future.result(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+_________________________ test_async_function_timeout __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_timeout():
+        @timeout_decorator(1)
+        async def slow_async_function():
+            await asyncio.sleep(2)
+            return "Done"
+    
+>       assert await slow_async_function() is None
+
+tests/test_timeout_decorator.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.run(async_wrapper(*args, **kwargs))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+main = <coroutine object timeout_decorator.<locals>.decorator.<locals>.async_wrapper at 0x104112880>
+
+    def run(main, *, debug=None):
+        """Execute the coroutine and return the result.
+    
+        This function runs the passed coroutine, taking care of
+        managing the asyncio event loop and finalizing asynchronous
+        generators.
+    
+        This function cannot be called when another asyncio event loop is
+        running in the same thread.
+    
+        If debug is True, the event loop will be run in debug mode.
+    
+        This function always creates a new event loop and closes it at the end.
+        It should be used as a main entry point for asyncio programs, and should
+        ideally only be called once.
+    
+        Example:
+    
+            async def main():
+                await asyncio.sleep(1)
+                print('hello')
+    
+            asyncio.run(main())
+        """
+        if events._get_running_loop() is not None:
+>           raise RuntimeError(
+                "asyncio.run() cannot be called from a running event loop")
+E           RuntimeError: asyncio.run() cannot be called from a running event loop
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/runners.py:33: RuntimeError
+_________________________ test_async_function_success __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_success():
+        @timeout_decorator(2)
+        async def fast_async_function():
+            await asyncio.sleep(1)
+            return "Done"
+    
+>       assert await fast_async_function() == "Done"
+
+tests/test_timeout_decorator.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.run(async_wrapper(*args, **kwargs))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+main = <coroutine object timeout_decorator.<locals>.decorator.<locals>.async_wrapper at 0x1041130d0>
+
+    def run(main, *, debug=None):
+        """Execute the coroutine and return the result.
+    
+        This function runs the passed coroutine, taking care of
+        managing the asyncio event loop and finalizing asynchronous
+        generators.
+    
+        This function cannot be called when another asyncio event loop is
+        running in the same thread.
+    
+        If debug is True, the event loop will be run in debug mode.
+    
+        This function always creates a new event loop and closes it at the end.
+        It should be used as a main entry point for asyncio programs, and should
+        ideally only be called once.
+    
+        Example:
+    
+            async def main():
+                await asyncio.sleep(1)
+                print('hello')
+    
+            asyncio.run(main())
+        """
+        if events._get_running_loop() is not None:
+>           raise RuntimeError(
+                "asyncio.run() cannot be called from a running event loop")
+E           RuntimeError: asyncio.run() cannot be called from a running event loop
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/runners.py:33: RuntimeError
+_______________________ test_sync_function_with_callback _______________________
+
+    def test_sync_function_with_callback():
+        callback_called = False
+    
+        def callback(func_name, *args, **kwargs):
+            nonlocal callback_called
+            callback_called = True
+    
+        @timeout_decorator(1, callback=callback)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_timeout_decorator.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+src/timeout_decorator/decorator.py:73: in sync_wrapper
+    future.result(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+_____________________ test_sync_function_with_custom_error _____________________
+
+    def test_sync_function_with_custom_error():
+        class CustomTimeoutError(Exception):
+            pass
+    
+        @timeout_decorator(1, custom_error=CustomTimeoutError)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+        with pytest.raises(CustomTimeoutError):
+>           slow_function()
+
+tests/test_timeout_decorator.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+src/timeout_decorator/decorator.py:73: in sync_wrapper
+    future.result(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+=========================== short test summary info ============================
+FAILED tests/test_timeout_decorator.py::test_sync_function_timeout - concurre...
+FAILED tests/test_timeout_decorator.py::test_async_function_timeout - Runtime...
+FAILED tests/test_timeout_decorator.py::test_async_function_success - Runtime...
+FAILED tests/test_timeout_decorator.py::test_sync_function_with_callback - co...
+FAILED tests/test_timeout_decorator.py::test_sync_function_with_custom_error
+========================= 5 failed, 1 passed in 7.09s ==========================
+
+2024-07-27 16:36:56,010 - ERROR - Error output:
+
+2024-07-27 16:37:50,773 - ERROR - ✗ Sync decorator failed
+2024-07-27 16:37:50,774 - ERROR - ✗ Async decorator failed
+2024-07-27 16:37:50,774 - ERROR - ✗ Some checks failed
+2024-07-27 16:37:50,774 - INFO - Full test output:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.5, pytest-7.3.1, pluggy-1.5.0 -- /Users/himanshu./Desktop/python_timeout_request/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/himanshu./Desktop/python_timeout_request
+plugins: asyncio-0.21.0
+asyncio: mode=strict
+collecting ... collected 6 items
+
+tests/test_timeout_decorator.py::test_sync_function_timeout FAILED       [ 16%]
+tests/test_timeout_decorator.py::test_sync_function_success PASSED       [ 33%]
+tests/test_timeout_decorator.py::test_async_function_timeout FAILED      [ 50%]
+tests/test_timeout_decorator.py::test_async_function_success FAILED      [ 66%]
+tests/test_timeout_decorator.py::test_sync_function_with_callback FAILED [ 83%]
+tests/test_timeout_decorator.py::test_sync_function_with_custom_error FAILED [100%]
+
+=================================== FAILURES ===================================
+__________________________ test_sync_function_timeout __________________________
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x10207dc60>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x1020b1660>
+future = <Future at 0x1020b1630 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+>               future.result(timeout=timeout)
+
+src/timeout_decorator/decorator.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_sync_function_timeout():
+        @timeout_decorator(1)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_timeout_decorator.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x10207dc60>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x1020b1660>
+future = <Future at 0x1020b1630 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+                future.result(timeout=timeout)
+>           except concurrent.futures.TimeoutError:
+E           NameError: name 'concurrent' is not defined
+
+src/timeout_decorator/decorator.py:74: NameError
+_________________________ test_async_function_timeout __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_timeout():
+        @timeout_decorator(1)
+        async def slow_async_function():
+            await asyncio.sleep(2)
+            return "Done"
+    
+>       assert await slow_async_function() is None
+
+tests/test_timeout_decorator.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.get_event_loop().run_until_complete(async_wrapper(*args, **kwargs))
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:622: in run_until_complete
+    self._check_running()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_UnixSelectorEventLoop running=False closed=False debug=False>
+
+    def _check_running(self):
+        if self.is_running():
+>           raise RuntimeError('This event loop is already running')
+E           RuntimeError: This event loop is already running
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:582: RuntimeError
+_________________________ test_async_function_success __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_success():
+        @timeout_decorator(2)
+        async def fast_async_function():
+            await asyncio.sleep(1)
+            return "Done"
+    
+>       assert await fast_async_function() == "Done"
+
+tests/test_timeout_decorator.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.get_event_loop().run_until_complete(async_wrapper(*args, **kwargs))
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:622: in run_until_complete
+    self._check_running()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_UnixSelectorEventLoop running=False closed=False debug=False>
+
+    def _check_running(self):
+        if self.is_running():
+>           raise RuntimeError('This event loop is already running')
+E           RuntimeError: This event loop is already running
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:582: RuntimeError
+_______________________ test_sync_function_with_callback _______________________
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x10207dfc0>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x1022bcb20>
+future = <Future at 0x1022bc8e0 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+>               future.result(timeout=timeout)
+
+src/timeout_decorator/decorator.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_sync_function_with_callback():
+        callback_called = False
+    
+        def callback(func_name, *args, **kwargs):
+            nonlocal callback_called
+            callback_called = True
+    
+        @timeout_decorator(1, callback=callback)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_timeout_decorator.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x10207dfc0>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x1022bcb20>
+future = <Future at 0x1022bc8e0 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+                future.result(timeout=timeout)
+>           except concurrent.futures.TimeoutError:
+E           NameError: name 'concurrent' is not defined
+
+src/timeout_decorator/decorator.py:74: NameError
+_____________________ test_sync_function_with_custom_error _____________________
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x10214d900>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x10217b400>
+future = <Future at 0x10217b460 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+>               future.result(timeout=timeout)
+
+src/timeout_decorator/decorator.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_sync_function_with_custom_error():
+        class CustomTimeoutError(Exception):
+            pass
+    
+        @timeout_decorator(1, custom_error=CustomTimeoutError)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+        with pytest.raises(CustomTimeoutError):
+>           slow_function()
+
+tests/test_timeout_decorator.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x10214d900>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x10217b400>
+future = <Future at 0x10217b460 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+                future.result(timeout=timeout)
+>           except concurrent.futures.TimeoutError:
+E           NameError: name 'concurrent' is not defined
+
+src/timeout_decorator/decorator.py:74: NameError
+=========================== short test summary info ============================
+FAILED tests/test_timeout_decorator.py::test_sync_function_timeout - NameErro...
+FAILED tests/test_timeout_decorator.py::test_async_function_timeout - Runtime...
+FAILED tests/test_timeout_decorator.py::test_async_function_success - Runtime...
+FAILED tests/test_timeout_decorator.py::test_sync_function_with_callback - Na...
+FAILED tests/test_timeout_decorator.py::test_sync_function_with_custom_error
+========================= 5 failed, 1 passed in 7.15s ==========================
+
+2024-07-27 16:37:50,774 - ERROR - Error output:
+sys:1: RuntimeWarning: coroutine 'timeout_decorator.<locals>.decorator.<locals>.async_wrapper' was never awaited
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+
+2024-07-27 16:38:39,260 - ERROR - ✗ Sync decorator failed
+2024-07-27 16:38:39,260 - ERROR - ✗ Async decorator failed
+2024-07-27 16:38:39,260 - ERROR - ✗ Some checks failed
+2024-07-27 16:38:39,260 - INFO - Full test output:
+============================= test session starts ==============================
+platform darwin -- Python 3.10.5, pytest-7.3.1, pluggy-1.5.0 -- /Users/himanshu./Desktop/python_timeout_request/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/himanshu./Desktop/python_timeout_request
+plugins: asyncio-0.21.0
+asyncio: mode=strict
+collecting ... collected 9 items
+
+tests/test_timeout_decorator.py::test_sync_function_timeout FAILED       [ 11%]
+tests/test_timeout_decorator.py::test_sync_function_success PASSED       [ 22%]
+tests/test_timeout_decorator.py::test_async_function_timeout FAILED      [ 33%]
+tests/test_timeout_decorator.py::test_async_function_success FAILED      [ 44%]
+tests/test_timeout_decorator.py::test_sync_function_with_callback FAILED [ 55%]
+tests/test_timeout_decorator.py::test_sync_function_with_custom_error FAILED [ 66%]
+tests/test_timeout_decorator.py::test_async_function_with_custom_error FAILED [ 77%]
+tests/test_timeout_decorator.py::test_sync_function_exception PASSED     [ 88%]
+tests/test_timeout_decorator.py::test_async_function_exception FAILED    [100%]
+
+=================================== FAILURES ===================================
+__________________________ test_sync_function_timeout __________________________
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x104209c60>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x10421b3d0>
+future = <Future at 0x10421ba30 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+>               future.result(timeout=timeout)
+
+src/timeout_decorator/decorator.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_sync_function_timeout():
+        @timeout_decorator(1)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_timeout_decorator.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x104209c60>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x10421b3d0>
+future = <Future at 0x10421ba30 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+                future.result(timeout=timeout)
+>           except concurrent.futures.TimeoutError:
+E           NameError: name 'concurrent' is not defined
+
+src/timeout_decorator/decorator.py:74: NameError
+_________________________ test_async_function_timeout __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_timeout():
+        @timeout_decorator(1)
+        async def slow_async_function():
+            await asyncio.sleep(2)
+            return "Done"
+    
+>       assert await slow_async_function() is None
+
+tests/test_timeout_decorator.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.get_event_loop().run_until_complete(async_wrapper(*args, **kwargs))
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:622: in run_until_complete
+    self._check_running()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_UnixSelectorEventLoop running=False closed=False debug=False>
+
+    def _check_running(self):
+        if self.is_running():
+>           raise RuntimeError('This event loop is already running')
+E           RuntimeError: This event loop is already running
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:582: RuntimeError
+_________________________ test_async_function_success __________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_success():
+        @timeout_decorator(2)
+        async def fast_async_function():
+            await asyncio.sleep(1)
+            return "Done"
+    
+>       assert await fast_async_function() == "Done"
+
+tests/test_timeout_decorator.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.get_event_loop().run_until_complete(async_wrapper(*args, **kwargs))
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:622: in run_until_complete
+    self._check_running()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_UnixSelectorEventLoop running=False closed=False debug=False>
+
+    def _check_running(self):
+        if self.is_running():
+>           raise RuntimeError('This event loop is already running')
+E           RuntimeError: This event loop is already running
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:582: RuntimeError
+_______________________ test_sync_function_with_callback _______________________
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x104209fc0>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x1043866e0>
+future = <Future at 0x104386a70 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+>               future.result(timeout=timeout)
+
+src/timeout_decorator/decorator.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_sync_function_with_callback():
+        callback_called = False
+    
+        def callback(func_name, *args, **kwargs):
+            nonlocal callback_called
+            callback_called = True
+    
+        @timeout_decorator(1, callback=callback)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+>       assert slow_function() is None
+
+tests/test_timeout_decorator.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x104209fc0>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x1043866e0>
+future = <Future at 0x104386a70 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+                future.result(timeout=timeout)
+>           except concurrent.futures.TimeoutError:
+E           NameError: name 'concurrent' is not defined
+
+src/timeout_decorator/decorator.py:74: NameError
+_____________________ test_sync_function_with_custom_error _____________________
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x1042d1bd0>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x10423d750>
+future = <Future at 0x10423d690 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+>               future.result(timeout=timeout)
+
+src/timeout_decorator/decorator.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None, timeout = 1
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+                else:
+>                   raise TimeoutError()
+E                   concurrent.futures._base.TimeoutError
+
+../../.pyenv/versions/3.10.5/lib/python3.10/concurrent/futures/_base.py:448: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_sync_function_with_custom_error():
+        class CustomTimeoutError(Exception):
+            pass
+    
+        @timeout_decorator(1, custom_error=CustomTimeoutError)
+        def slow_function():
+            time.sleep(2)
+            return "Done"
+    
+        with pytest.raises(CustomTimeoutError):
+>           slow_function()
+
+tests/test_timeout_decorator.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:44: in wrapper
+    return sync_wrapper(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (), kwargs = {}
+target = <function timeout_decorator.<locals>.decorator.<locals>.sync_wrapper.<locals>.target at 0x1042d1bd0>
+executor = <concurrent.futures.thread.ThreadPoolExecutor object at 0x10423d750>
+future = <Future at 0x10423d690 state=finished returned NoneType>
+
+    def sync_wrapper(*args, **kwargs):
+        result = [None]
+        exception = [None]
+    
+        def target():
+            try:
+                result[0] = func(*args, **kwargs)
+            except Exception as e:
+                exception[0] = e
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(target)
+            try:
+                future.result(timeout=timeout)
+>           except concurrent.futures.TimeoutError:
+E           NameError: name 'concurrent' is not defined
+
+src/timeout_decorator/decorator.py:74: NameError
+____________________ test_async_function_with_custom_error _____________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_with_custom_error():
+        class CustomTimeoutError(Exception):
+            pass
+    
+        @timeout_decorator(1, custom_error=CustomTimeoutError)
+        async def slow_async_function():
+            await asyncio.sleep(2)
+            return "Done"
+    
+        with pytest.raises(CustomTimeoutError):
+>           await slow_async_function()
+
+tests/test_timeout_decorator.py:81: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.get_event_loop().run_until_complete(async_wrapper(*args, **kwargs))
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:622: in run_until_complete
+    self._check_running()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_UnixSelectorEventLoop running=False closed=False debug=False>
+
+    def _check_running(self):
+        if self.is_running():
+>           raise RuntimeError('This event loop is already running')
+E           RuntimeError: This event loop is already running
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:582: RuntimeError
+________________________ test_async_function_exception _________________________
+
+    @pytest.mark.asyncio
+    async def test_async_function_exception():
+        @timeout_decorator(1)
+        async def error_async_function():
+            raise ValueError("Test error")
+    
+        with pytest.raises(ValueError, match="Test error"):
+>           await error_async_function()
+
+tests/test_timeout_decorator.py:98: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/timeout_decorator/decorator.py:42: in wrapper
+    return asyncio.get_event_loop().run_until_complete(async_wrapper(*args, **kwargs))
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:622: in run_until_complete
+    self._check_running()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_UnixSelectorEventLoop running=False closed=False debug=False>
+
+    def _check_running(self):
+        if self.is_running():
+>           raise RuntimeError('This event loop is already running')
+E           RuntimeError: This event loop is already running
+
+../../.pyenv/versions/3.10.5/lib/python3.10/asyncio/base_events.py:582: RuntimeError
+=========================== short test summary info ============================
+FAILED tests/test_timeout_decorator.py::test_sync_function_timeout - NameErro...
+FAILED tests/test_timeout_decorator.py::test_async_function_timeout - Runtime...
+FAILED tests/test_timeout_decorator.py::test_async_function_success - Runtime...
+FAILED tests/test_timeout_decorator.py::test_sync_function_with_callback - Na...
+FAILED tests/test_timeout_decorator.py::test_sync_function_with_custom_error
+FAILED tests/test_timeout_decorator.py::test_async_function_with_custom_error
+FAILED tests/test_timeout_decorator.py::test_async_function_exception - Runti...
+========================= 7 failed, 2 passed in 7.20s ==========================
+
+2024-07-27 16:38:39,260 - ERROR - Error output:
+sys:1: RuntimeWarning: coroutine 'timeout_decorator.<locals>.decorator.<locals>.async_wrapper' was never awaited
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+
