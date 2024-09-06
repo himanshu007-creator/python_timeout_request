@@ -1,4 +1,6 @@
-# Timeout Decorator
+# Timeout Decorator [![Downloads](https://static.pepy.tech/badge/python-timeout-request-himanshu007-creator)](https://pepy.tech/project/python-timeout-request-himanshu007-creator)
+
+
 
 A versatile timeout decorator for both synchronous and asynchronous functions in Python.
 
